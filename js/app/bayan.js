@@ -3,7 +3,7 @@ function(teoria, KeyboardJS) {
 
   // mappings from key names ('q') to midi notes (1)
   // "Western European" (type C), right handed.
-  var mappingCR =
+  var MAPPING_CR =
   {']':1,  '\'':2,  '/':3,
    '=':15,  '[':4,  ';':5,  '.':6,
    '-':18,  'p':7,  'l':8,  ',':9,
@@ -15,6 +15,10 @@ function(teoria, KeyboardJS) {
    '5':36,  'r':25, 'd':26, 'x':27,
    '4':39,  'e':28, 's':29, 'z':30,
    '3':42,  'w':31, 'a':32};
+
+  var keys = {};
+  var lastKeyUp = 'backspace';
+  var octave = 0;
 
   function Bayan(canvas) {
     this.canvas = canvas;
@@ -32,48 +36,40 @@ function(teoria, KeyboardJS) {
     this.canvas.focus();
     this.canvas.addEventListener('keydown', this.keyDown);
     this.canvas.addEventListener('keyup', this.keyUp);
-    this.keys = {};
   }
 
   Bayan.prototype.keyDown = function(e) {
     e.preventDefault();
     var k = Bayan.keyForEvent(e);
-    // Why doesn't init work?
-    if (!this.keys) {
-      this.keys = {};
-    }
     // Prevent key repeat
-    if (this.keys[k]) {
+    if (keys[k]) {
       return;
     }
     // Prevent '-' and '=' keys from triggering 'backspace' and 'v'
     // Tested in Chrome, not sure about other browsers
     if (k == 'backspace'
         || (k == 'v'
-            && (this.keys['-'] || this.keys['=']
-                || this.lastKeyUp == '-' || this.lastKeyUp == '='))) {
-      delete this.keys['v'];
-      delete this.keys['backspace'];
+            && (keys['-'] || keys['=']
+                || lastKeyUp == '-' || lastKeyUp == '='))) {
+      delete keys['v'];
+      delete keys['backspace'];
       return;
     }
-    this.keys[k] = true;
+    keys[k] = true;
 
-    console.log(this.keys);
+    console.log(keys);
   }
 
   Bayan.prototype.keyUp = function(e) {
     e.preventDefault();
     var k = Bayan.keyForEvent(e);
-    if (!this.keys) {
-      this.keys = {};
-    }
-    delete this.keys[k];
+    delete keys[k];
     // Silence backspace
     if (k == 'backspace') {
       return;
     }
 
-    this.lastKeyUp = k;
+    lastKeyUp = k;
     console.log('up ' + k);
   }
 
