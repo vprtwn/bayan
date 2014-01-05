@@ -11,6 +11,7 @@ function (Bayan) {
 
   var canvas = document.getElementById('bayan');
   var bayan = new Bayan(canvas);
+  bayan.init();
 
 });
 
