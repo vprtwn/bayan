@@ -3,22 +3,23 @@ function(teoria, KeyboardJS) {
 
   // mappings from key names ('q') to midi notes (1)
   // "Western European" (type C), right handed.
-  var MAPPING_CR =
-  {']':1,  '\'':2,  '/':3,
-   '=':15,  '[':4,  ';':5,  '.':6,
-   '-':18,  'p':7,  'l':8,  ',':9,
-   '0':21,  'o':10, 'k':11, 'm':12,
-   '9':24,  'i':13, 'j':14, 'n':15,
-   '8':27,  'u':16, 'h':17, 'b':18,
-   '7':30,  'y':19, 'g':20, 'v':21,
-   '6':33,  't':22, 'f':23, 'c':24,
-   '5':36,  'r':25, 'd':26, 'x':27,
-   '4':39,  'e':28, 's':29, 'z':30,
-   '3':42,  'w':31, 'a':32};
+  var LAYOUT_CR =
+  {']':0,  '\'':1,  '/':2,
+   '=':14,  '[':3,  ';':4,  '.':5,
+   '-':17,  'p':6,  'l':7,  ',':8,
+   '0':20,  'o':9, 'k':10, 'm':11,
+   '9':23,  'i':12, 'j':13, 'n':14,
+   '8':26,  'u':15, 'h':16, 'b':17,
+   '7':29,  'y':18, 'g':19, 'v':20,
+   '6':32,  't':21, 'f':22, 'c':23,
+   '5':35,  'r':24, 'd':25, 'x':26,
+   '4':38,  'e':27, 's':28, 'z':29,
+   '3':41,  'w':30, 'a':31};
 
   var keys = {};
   var lastKeyUp = 'backspace';
   var octave = 0;
+  var layout = LAYOUT_CR;
 
   function Bayan(canvas) {
     this.canvas = canvas;
@@ -41,8 +42,8 @@ function(teoria, KeyboardJS) {
   Bayan.prototype.keyDown = function(e) {
     e.preventDefault();
     var k = Bayan.keyForEvent(e);
-    // Prevent key repeat
-    if (keys[k]) {
+    // Prevent key repeat and silence keys not in layout
+    if (keys[k] || !layout[k]) {
       return;
     }
     // Prevent '-' and '=' keys from triggering 'backspace' and 'v'
@@ -57,20 +58,22 @@ function(teoria, KeyboardJS) {
     }
     keys[k] = true;
 
-    console.log(keys);
+    var midiNote = layout[k];
+    var note = teoria.note.fromMIDI(midiNote);
+    console.log(note.toString());
   }
 
   Bayan.prototype.keyUp = function(e) {
     e.preventDefault();
-    var k = Bayan.keyForEvent(e);
-    delete keys[k];
-    // Silence backspace
-    if (k == 'backspace') {
+    // Silence keys not in layout
+    if (!layout[k]) {
       return;
     }
+    var k = Bayan.keyForEvent(e);
+    delete keys[k];
 
     lastKeyUp = k;
-    console.log('up ' + k);
+    // console.log('up ' + k);
   }
 
   return Bayan;

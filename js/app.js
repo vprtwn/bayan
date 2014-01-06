@@ -3,6 +3,11 @@ requirejs.config({
   paths: {
     lib: 'lib',
     app: 'app'
+  },
+  shim: {
+    'lib/teoria' : {
+      exports: 'teoria'
+    }
   }
 });
 
