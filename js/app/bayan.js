@@ -18,7 +18,7 @@ function(teoria, KeyboardJS) {
 
   var keys = {};
   var lastKeyUp = 'backspace';
-  var octave = 0;
+  var octave = 1;
   var layout = LAYOUT_CR;
 
   function Bayan(canvas) {
@@ -43,7 +43,7 @@ function(teoria, KeyboardJS) {
     e.preventDefault();
     var k = Bayan.keyForEvent(e);
     // Prevent key repeat and silence keys not in layout
-    if (keys[k] || !layout[k]) {
+    if (keys[k]) {// || !layout[k]) {
       return;
     }
     // Prevent '-' and '=' keys from triggering 'backspace' and 'v'
@@ -59,20 +59,27 @@ function(teoria, KeyboardJS) {
     keys[k] = true;
 
     var midiNote = layout[k];
-    var note = teoria.note.fromMIDI(midiNote);
+    if (midiNote == undefined) {
+      return;
+    }
+    var note = teoria.note.fromMIDI(midiNote + octave*12);
     console.log(note.toString());
   }
 
   Bayan.prototype.keyUp = function(e) {
     e.preventDefault();
     // Silence keys not in layout
-    if (!layout[k]) {
+    if (k == 'backspace') {//!layout[k]) {
       return;
     }
     var k = Bayan.keyForEvent(e);
     delete keys[k];
-
     lastKeyUp = k;
+
+    var midiNote = layout[k];
+    if (midiNote == undefined) {
+      return;
+    }
     // console.log('up ' + k);
   }
 
