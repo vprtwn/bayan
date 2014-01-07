@@ -2,9 +2,8 @@ define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre'],
 function(teoria, sc, KeyboardJS, T) {
 
   console.log(sc.midicps(69));
-  T("sin", {freq:880, mul:0.5}).play();
 
-  // mappings from key names ('q') to midi notes (1)
+  // mappings from key names ('q') to midi notes (0)
   // "Western European" (type C), right handed.
   var LAYOUT_CR =
   {']':0,  '\'':1,  '/':2,
@@ -21,8 +20,22 @@ function(teoria, sc, KeyboardJS, T) {
 
   var keys = {};
   var lastKeyUp = 'backspace';
-  var octave = 1;
+  var octave = 5;
   var layout = LAYOUT_CR;
+
+  // SYNTH put this in a module
+  var synth = T("SynthDef").play();
+  synth.def = function(opts) {
+    var VCO = T("sin", {freq:opts.freq});
+
+    var cutoff = T("env", {table:[8000, [opts.freq, 500]]}).bang();
+    var VCF    = T("lpf", {cutoff:cutoff, Q:5}, VCO);
+
+    var EG  = T("adsr", {a:15, d:500, s:0.45, r:15, lv:0.2});
+    var VCA = EG.append(VCF).bang();
+
+    return VCA;
+  };
 
   function Bayan(canvas) {
     this.canvas = canvas;
@@ -35,6 +48,15 @@ function(teoria, sc, KeyboardJS, T) {
     return names[names.length - 1];
   }
 
+  Bayan.midiNumberForKey = function(k) {
+    var midiNumber = layout[k];
+    if (midiNumber === undefined) {
+      return -1;
+    }
+    midiNumber = midiNumber + octave*12;
+    return midiNumber;
+  }
+
   // Instance methods
   Bayan.prototype.init = function() {
     this.canvas.focus();
@@ -42,49 +64,52 @@ function(teoria, sc, KeyboardJS, T) {
     this.canvas.addEventListener('keyup', this.keyUp);
   }
 
+
   Bayan.prototype.keyDown = function(e) {
     e.preventDefault();
     var k = Bayan.keyForEvent(e);
     // Prevent key repeat and silence keys not in layout
-    if (keys[k]) {// || !layout[k]) {
+    if (keys[k]) {
       return;
     }
     // Prevent '-' and '=' keys from triggering 'backspace' and 'v'
     // Tested in Chrome, not sure about other browsers
-    if (k == 'backspace'
-        || (k == 'v'
+    if (k === 'backspace'
+        || (k === 'v'
             && (keys['-'] || keys['=']
-                || lastKeyUp == '-' || lastKeyUp == '='))) {
+                || lastKeyUp === '-' || lastKeyUp === '='))) {
       delete keys['v'];
       delete keys['backspace'];
       return;
     }
     keys[k] = true;
 
-    var midiNote = layout[k];
-    if (midiNote == undefined) {
+    var midiNumber = Bayan.midiNumberForKey(k);
+    if (midiNumber < 0) {
       return;
     }
-    var note = teoria.note.fromMIDI(midiNote + octave*12);
-    var freq = sc.Scale.chromatic().degreeToFreq(midiNote, (12).midicps(), octave);
-    console.log(note.toString() + " " + freq);
+    var note = teoria.note.fromMIDI(midiNumber);
+    var freq = sc.Scale.chromatic("equal").degreeToFreq(midiNumber, (0).midicps(), octave);
+    console.log(midiNumber + note.toString() + " " + freq);
+    synth.noteOn(midiNumber);
   }
 
   Bayan.prototype.keyUp = function(e) {
     e.preventDefault();
     // Silence keys not in layout
-    if (k == 'backspace') {//!layout[k]) {
+    if (k === 'backspace') {//!layout[k]) {
       return;
     }
     var k = Bayan.keyForEvent(e);
     delete keys[k];
     lastKeyUp = k;
 
-    var midiNote = layout[k];
-    if (midiNote == undefined) {
+    var midiNumber = Bayan.midiNumberForKey(k);
+    if (midiNumber < 0) {
       return;
     }
-    // console.log('up ' + k);
+
+    synth.noteOff(midiNumber);
   }
 
   return Bayan;
