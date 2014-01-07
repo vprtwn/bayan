@@ -7,6 +7,12 @@ requirejs.config({
   shim: {
     'lib/teoria' : {
       exports: 'teoria'
+    },
+    'lib/subcollider' : {
+      exports: 'sc'
+    },
+    'lib/timbre' : {
+      exports: 'T'
     }
   }
 });

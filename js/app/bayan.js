@@ -1,5 +1,8 @@
-define(['lib/teoria', 'lib/keyboard'],
-function(teoria, KeyboardJS) {
+define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre'],
+function(teoria, sc, KeyboardJS, T) {
+
+  console.log(sc.midicps(69));
+  T("sin", {freq:880, mul:0.5}).play();
 
   // mappings from key names ('q') to midi notes (1)
   // "Western European" (type C), right handed.
@@ -63,7 +66,8 @@ function(teoria, KeyboardJS) {
       return;
     }
     var note = teoria.note.fromMIDI(midiNote + octave*12);
-    console.log(note.toString());
+    var freq = sc.Scale.chromatic().degreeToFreq(midiNote, (12).midicps(), octave);
+    console.log(note.toString() + " " + freq);
   }
 
   Bayan.prototype.keyUp = function(e) {
