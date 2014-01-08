@@ -1,7 +1,5 @@
-define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre'],
-function(teoria, sc, KeyboardJS, T) {
-
-  console.log(sc.midicps(69));
+define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre', 'app/synth'],
+function(teoria, sc, KeyboardJS, T, Synth) {
 
   // mappings from key names ('q') to midi notes (0)
   // "Western European" (type C), right handed.
@@ -18,24 +16,11 @@ function(teoria, sc, KeyboardJS, T) {
    '4':38,  'e':27, 's':28, 'z':29,
    '3':41,  'w':30, 'a':31};
 
+  var Synth = new Synth();
   var keys = {};
   var lastKeyUp = 'backspace';
   var octave = 5;
   var layout = LAYOUT_CR;
-
-  // SYNTH put this in a module
-  var synth = T("SynthDef").play();
-  synth.def = function(opts) {
-    var VCO = T("sin", {freq:opts.freq});
-
-    var cutoff = T("env", {table:[8000, [opts.freq, 500]]}).bang();
-    var VCF    = T("lpf", {cutoff:cutoff, Q:5}, VCO);
-
-    var EG  = T("adsr", {a:15, d:500, s:0.45, r:15, lv:0.2});
-    var VCA = EG.append(VCF).bang();
-
-    return VCA;
-  };
 
   function Bayan(canvas) {
     this.canvas = canvas;
@@ -88,10 +73,11 @@ function(teoria, sc, KeyboardJS, T) {
     if (midiNumber < 0) {
       return;
     }
+
     var note = teoria.note.fromMIDI(midiNumber);
     var freq = sc.Scale.chromatic("equal").degreeToFreq(midiNumber, (0).midicps(), octave);
     console.log(midiNumber + note.toString() + " " + freq);
-    synth.noteOn(midiNumber);
+    Synth.noteOn(midiNumber);
   }
 
   Bayan.prototype.keyUp = function(e) {
@@ -109,7 +95,7 @@ function(teoria, sc, KeyboardJS, T) {
       return;
     }
 
-    synth.noteOff(midiNumber);
+    Synth.noteOff(midiNumber);
   }
 
   return Bayan;
