@@ -11,7 +11,7 @@ function(T) {
       var cutoff = T("env", {table:[8000, [opts.freq, 500]]}).bang();
       var VCF    = T("lpf", {cutoff:cutoff, Q:5}, VCO);
 
-      var EG  = T("adsr", {a:15, d:500, s:0.45, r:15, lv:0.2});
+      var EG  = T("adsr", {a:15, d:500, s:0.45, r:15, lv:0.1});
       var VCA = EG.append(VCF).bang();
 
       return VCA;
