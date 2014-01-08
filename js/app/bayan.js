@@ -16,14 +16,13 @@ function(teoria, sc, KeyboardJS, T, Synth) {
    '4':38,  'e':27, 's':28, 'z':29,
    '3':41,  'w':30, 'a':31};
 
-  var Synth = new Synth();
-  var keys = {};
-  var lastKeyUp = 'backspace';
-  var octave = 5;
-  var layout = LAYOUT_CR;
-
   function Bayan(canvas) {
+    self = this;
+    this.keys = {};
+    this.lastKeyUp = 'backspace';
     this.canvas = canvas;
+    this.octave = 5;
+    this.layout = LAYOUT_CR;
   }
 
   // Class methods
@@ -34,68 +33,72 @@ function(teoria, sc, KeyboardJS, T, Synth) {
   }
 
   Bayan.midiNumberForKey = function(k) {
-    var midiNumber = layout[k];
+    var midiNumber = self.layout[k];
     if (midiNumber === undefined) {
       return -1;
     }
-    midiNumber = midiNumber + octave*12;
+    midiNumber = midiNumber + self.octave*12;
     return midiNumber;
   }
 
   // Instance methods
   Bayan.prototype.init = function() {
     this.canvas.focus();
-    this.canvas.addEventListener('keydown', this.keyDown);
-    this.canvas.addEventListener('keyup', this.keyUp);
-  }
 
+    // 'this' refers to the element the event originates from.
+    // http://jibbering.com/faq/notes/closures
+    var self = this;
+    // Key down handler
+    this.canvas.onkeydown = function(e) {
+      e.preventDefault();
+      var k = Bayan.keyForEvent(e);
+      // Prevent key repeat
+      if (self.keys[k]) {
+        return;
+      }
+      // Prevent '-' and '=' keys from triggering 'backspace' and 'v'
+      // Tested in Chrome, not sure about other browsers
+      if (k === 'backspace'
+          || (k === 'v'
+              && (self.keys['-'] || self.keys['=']
+                  || self.lastKeyUp === '-' || self.lastKeyUp === '='))) {
+        delete self.keys['v'];
+        delete self.keys['backspace'];
+        return;
+      }
+      self.keys[k] = true;
 
-  Bayan.prototype.keyDown = function(e) {
-    e.preventDefault();
-    var k = Bayan.keyForEvent(e);
-    // Prevent key repeat and silence keys not in layout
-    if (keys[k]) {
-      return;
-    }
-    // Prevent '-' and '=' keys from triggering 'backspace' and 'v'
-    // Tested in Chrome, not sure about other browsers
-    if (k === 'backspace'
-        || (k === 'v'
-            && (keys['-'] || keys['=']
-                || lastKeyUp === '-' || lastKeyUp === '='))) {
-      delete keys['v'];
-      delete keys['backspace'];
-      return;
-    }
-    keys[k] = true;
+      var midiNumber = Bayan.midiNumberForKey(k);
+      if (midiNumber < 0) {
+        return;
+      }
 
-    var midiNumber = Bayan.midiNumberForKey(k);
-    if (midiNumber < 0) {
-      return;
-    }
+      var note = teoria.note.fromMIDI(midiNumber);
+      var freq = sc.Scale.chromatic("equal").degreeToFreq(midiNumber, (0).midicps(), self.octave);
+      console.log(midiNumber + note.toString() + " " + freq);
 
-    var note = teoria.note.fromMIDI(midiNumber);
-    var freq = sc.Scale.chromatic("equal").degreeToFreq(midiNumber, (0).midicps(), octave);
-    console.log(midiNumber + note.toString() + " " + freq);
-    Synth.noteOn(midiNumber);
-  }
-
-  Bayan.prototype.keyUp = function(e) {
-    e.preventDefault();
-    // Silence keys not in layout
-    if (k === 'backspace') {//!layout[k]) {
-      return;
-    }
-    var k = Bayan.keyForEvent(e);
-    delete keys[k];
-    lastKeyUp = k;
-
-    var midiNumber = Bayan.midiNumberForKey(k);
-    if (midiNumber < 0) {
-      return;
+      self.synth.noteOn(midiNumber);
     }
 
-    Synth.noteOff(midiNumber);
+    // Key up handler
+    this.canvas.onkeyup = function(e) {
+      e.preventDefault();
+      // silence backspace
+      if (k === 'backspace') {
+        return;
+      }
+      var k = Bayan.keyForEvent(e);
+      delete self.keys[k];
+      self.lastKeyUp = k;
+
+      var midiNumber = Bayan.midiNumberForKey(k);
+      if (midiNumber < 0) {
+        return;
+      }
+      self.synth.noteOff(midiNumber);
+    }
+
+    this.synth = new Synth();
   }
 
   return Bayan;
