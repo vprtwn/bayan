@@ -3,11 +3,11 @@ function(teoria, sc, KeyboardJS, T, Synth) {
 
   // mappings from key names ('q') to midi notes (0)
   // "Western European" (type C), right handed.
-  var LAYOUT_CR =
+  var LAYOUT_BR =
   {']':0,  '\'':1,  '/':2,
    '=':14,  '[':3,  ';':4,  '.':5,
    '-':17,  'p':6,  'l':7,  ',':8,
-   '0':20,  'o':9, 'k':10, 'm':11,
+   '0':20,  'o':9,  'k':10, 'm':11,
    '9':23,  'i':12, 'j':13, 'n':14,
    '8':26,  'u':15, 'h':16, 'b':17,
    '7':29,  'y':18, 'g':19, 'v':20,
@@ -16,13 +16,27 @@ function(teoria, sc, KeyboardJS, T, Synth) {
    '4':38,  'e':27, 's':28, 'z':29,
    '3':41,  'w':30, 'a':31};
 
+  var LAYOUT_BL =
+  {'q':0,  'a':1,   'z':2,
+   '2':14, 'w':3,   's':4,  'x':5,
+   '3':17, 'e':6,   'd':7,  'c':8,
+   '4':20, 'r':9,   'f':10, 'v':11,
+   '5':23, 't':12,  'g':13, 'b':14,
+   '6':26, 'y':15,  'h':16, 'n':17,
+   '7':29, 'u':18,  'j':19, 'm':20,
+   '8':32, 'i':21,  'k':22, ',':23,
+   '9':35, 'o':24,  'l':25, '.':26,
+   '0':38, 'p':27,  ';':28, '/':29,
+   '-':41, '[':30,  '\'':31};
+
+
   function Bayan(canvas) {
     self = this;
     this.keys = {};
     this.lastKeyUp = 'backspace';
     this.canvas = canvas;
     this.octave = 5;
-    this.layout = LAYOUT_CR;
+    this.layout = LAYOUT_BL;
   }
 
   // Class methods
@@ -43,13 +57,11 @@ function(teoria, sc, KeyboardJS, T, Synth) {
 
   // Instance methods
   Bayan.prototype.init = function() {
-    this.canvas.focus();
-
     // 'this' refers to the element the event originates from.
     // http://jibbering.com/faq/notes/closures
     var self = this;
     // Key down handler
-    this.canvas.onkeydown = function(e) {
+    document.onkeydown = function(e) {
       e.preventDefault();
       var k = Bayan.keyForEvent(e);
       // Prevent key repeat
@@ -81,7 +93,7 @@ function(teoria, sc, KeyboardJS, T, Synth) {
     }
 
     // Key up handler
-    this.canvas.onkeyup = function(e) {
+    document.onkeyup = function(e) {
       e.preventDefault();
       // silence backspace
       if (k === 'backspace') {

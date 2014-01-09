@@ -8,10 +8,10 @@ function(T) {
     this.synthDef.def = function(opts) {
       var VCO = T("sin", {freq:opts.freq});
 
-      var cutoff = T("env", {table:[8000, [opts.freq, 500]]}).bang();
-      var VCF    = T("lpf", {cutoff:cutoff, Q:5}, VCO);
+      var cutoff = T("env", {table:[440, [440, 500], [1660, 250]]}).bang();
+      var VCF    = T("lpf", {cutoff:cutoff, Q:1}, VCO);
 
-      var EG  = T("adsr", {a:15, d:500, s:0.45, r:15, lv:0.1});
+      var EG  = T("adsr", {a:15, d:0, s:0.2, r:15, lv:0.1});
       var VCA = EG.append(VCF).bang();
 
       return VCA;
