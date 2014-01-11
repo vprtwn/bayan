@@ -1,4 +1,4 @@
 bayan
 =====
 
-chromatic button and stradella layouts for qwerty keyboards
+chromatic button accordion layout for the qwerty keyboard
