@@ -1,5 +1,5 @@
-define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre', 'lib/easeljs', 'app/synth'],
-function(teoria, sc, KeyboardJS, T, createjs, Synth) {
+define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre', 'lib/easeljs', 'app/synth', 'app/key'],
+function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
 
   // mappings from qwerty key names ('q') to midi notes (0)
   // Bayan, left to right
@@ -30,21 +30,8 @@ function(teoria, sc, KeyboardJS, T, createjs, Synth) {
     this.octave = 5;
     this.layout = LAYOUT_BL;
     this.stage = new createjs.Stage(canvas);
-    self = this;
-    this.keyboard = QWERTY.map(function (r) {
-      return r.map(function (e) {
-        var circle = new createjs.Shape();
-        circle.graphics.beginFill("red").drawCircle(0,0,40);
-        circle.x = e.charCodeAt(0);
-        self.stage.addChild(circle);
-        self.stage.update();
-        return circle
-      });
-    });
-
-    this.stage.update();
+    this.keyboard = {};
   }
-
 
   // Class methods
   Bayan.keyForEvent = function(e) {
@@ -54,19 +41,19 @@ function(teoria, sc, KeyboardJS, T, createjs, Synth) {
   }
 
 
-  Bayan.midiNumberForKey = function(k) {
-    var midiNumber = self.layout[k];
+  // Instance methods
+  Bayan.prototype.midiNumberForKey = function(k) {
+    var midiNumber = this.layout[k];
     if (midiNumber === undefined) {
       return -1;
     }
-    midiNumber = midiNumber + self.octave*12;
+    midiNumber = midiNumber + this.octave*12;
     return midiNumber;
   }
 
 
-  // Instance methods
   Bayan.prototype.init = function() {
-    // 'this' refers to the element the event originates from.
+    // in an event handler, 'this' refers to the element the event originates from.
     // http://jibbering.com/faq/notes/closures
     var self = this;
     // Key down handler
@@ -89,7 +76,7 @@ function(teoria, sc, KeyboardJS, T, createjs, Synth) {
       }
       self.keys[k] = true;
 
-      var midiNumber = Bayan.midiNumberForKey(k);
+      var midiNumber = self.midiNumberForKey(k);
       if (midiNumber < 0) {
         return;
       }
@@ -112,7 +99,7 @@ function(teoria, sc, KeyboardJS, T, createjs, Synth) {
       delete self.keys[k];
       self.lastKeyUp = k;
 
-      var midiNumber = Bayan.midiNumberForKey(k);
+      var midiNumber = self.midiNumberForKey(k);
       if (midiNumber < 0) {
         return;
       }
@@ -120,6 +107,34 @@ function(teoria, sc, KeyboardJS, T, createjs, Synth) {
     }
 
     this.synth = new Synth();
+    this.createKeyboard();
+  }
+
+  Bayan.prototype.createKeyboard = function () {
+    var width = Key.width();
+    var padding = width*0.1;
+    for (var r = 0; r < QWERTY.length; r++) {
+      for (var c = 0; c < QWERTY[r].length; c++) {
+        key = QWERTY[r][c];
+        var xOffset = 0;
+        switch (r) {
+          case 0:
+          case 2:
+            xOffset = width*0.5;
+            break;
+          case 3:
+            xOffset = width;
+            break;
+          case 1:
+          default:
+            break;
+        }
+        console.log(key);
+        this.keyboard[key] = Key(c*(Key.width() + padding) + xOffset, r*(Key.width() + padding),
+                                    this.midiNumberForKey(key), key,
+                                    this.stage);
+      }
+    }
   }
 
   Bayan.prototype.redraw = function () {
