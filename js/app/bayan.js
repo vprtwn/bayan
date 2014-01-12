@@ -1,21 +1,8 @@
-define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre', 'app/synth'],
-function(teoria, sc, KeyboardJS, T, Synth) {
+define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre', 'lib/easeljs', 'app/synth'],
+function(teoria, sc, KeyboardJS, T, createjs, Synth) {
 
-  // mappings from key names ('q') to midi notes (0)
-  // "Western European" (type C), right handed.
-  var LAYOUT_BR =
-  {']':0,  '\'':1,  '/':2,
-   '=':14,  '[':3,  ';':4,  '.':5,
-   '-':17,  'p':6,  'l':7,  ',':8,
-   '0':20,  'o':9,  'k':10, 'm':11,
-   '9':23,  'i':12, 'j':13, 'n':14,
-   '8':26,  'u':15, 'h':16, 'b':17,
-   '7':29,  'y':18, 'g':19, 'v':20,
-   '6':32,  't':21, 'f':22, 'c':23,
-   '5':35,  'r':24, 'd':25, 'x':26,
-   '4':38,  'e':27, 's':28, 'z':29,
-   '3':41,  'w':30, 'a':31};
-
+  // mappings from qwerty key names ('q') to midi notes (0)
+  // Bayan, left to right
   var LAYOUT_BL =
   {'q':0,  'a':1,   'z':2,
    '2':14, 'w':3,   's':4,  'x':5,
@@ -29,15 +16,35 @@ function(teoria, sc, KeyboardJS, T, Synth) {
    '0':38, 'p':27,  ';':28, '/':29,
    '-':41, '[':30,  '\'':31};
 
+  var QWERTY =
+  [['2','3','4','5','6','7','8','9','0','-'],
+   ['q','w','e','r','t','y','u','i','o','p','['],
+   ['a','s','d','f','g','h','j','k','l',';','\''],
+   ['z','x','c','v','b','n','m',',','.','/']];
+
 
   function Bayan(canvas) {
-    self = this;
     this.keys = {};
     this.lastKeyUp = 'backspace';
     this.canvas = canvas;
     this.octave = 5;
     this.layout = LAYOUT_BL;
+    this.stage = new createjs.Stage(canvas);
+    self = this;
+    this.keyboard = QWERTY.map(function (r) {
+      return r.map(function (e) {
+        var circle = new createjs.Shape();
+        circle.graphics.beginFill("red").drawCircle(0,0,40);
+        circle.x = e.charCodeAt(0);
+        self.stage.addChild(circle);
+        self.stage.update();
+        return circle
+      });
+    });
+
+    this.stage.update();
   }
+
 
   // Class methods
   Bayan.keyForEvent = function(e) {
@@ -45,6 +52,7 @@ function(teoria, sc, KeyboardJS, T, Synth) {
     var names = KeyboardJS.key.name(keyCode);
     return names[names.length - 1];
   }
+
 
   Bayan.midiNumberForKey = function(k) {
     var midiNumber = self.layout[k];
@@ -54,6 +62,7 @@ function(teoria, sc, KeyboardJS, T, Synth) {
     midiNumber = midiNumber + self.octave*12;
     return midiNumber;
   }
+
 
   // Instance methods
   Bayan.prototype.init = function() {
@@ -111,6 +120,10 @@ function(teoria, sc, KeyboardJS, T, Synth) {
     }
 
     this.synth = new Synth();
+  }
+
+  Bayan.prototype.redraw = function () {
+    this.stage.update();
   }
 
   return Bayan;
