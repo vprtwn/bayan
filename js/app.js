@@ -13,6 +13,9 @@ requirejs.config({
     },
     'lib/timbre' : {
       exports: 'T'
+    },
+    'lib/easeljs' : {
+      exports: 'createjs'
     }
   }
 });
@@ -21,8 +24,18 @@ requirejs(['app/bayan'],
 function (Bayan) {
 
   var canvas = document.getElementById('bayan');
+  var context = canvas.getContext('2d');
   var bayan = new Bayan(canvas);
-  bayan.init();
+
+  window.addEventListener('resize', onResize, false);
+  onResize();
+
+  function onResize() {
+    w = window.innerWidth;
+    h = window.innerHeight;
+    bayan.resize(w, h);
+  }
+
 
 });
 

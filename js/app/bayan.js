@@ -1,21 +1,8 @@
-define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre', 'app/synth'],
-function(teoria, sc, KeyboardJS, T, Synth) {
+define(['lib/teoria', 'lib/subcollider', 'lib/keyboard', 'lib/timbre', 'lib/easeljs', 'app/synth', 'app/key'],
+function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
 
-  // mappings from key names ('q') to midi notes (0)
-  // "Western European" (type C), right handed.
-  var LAYOUT_BR =
-  {']':0,  '\'':1,  '/':2,
-   '=':14,  '[':3,  ';':4,  '.':5,
-   '-':17,  'p':6,  'l':7,  ',':8,
-   '0':20,  'o':9,  'k':10, 'm':11,
-   '9':23,  'i':12, 'j':13, 'n':14,
-   '8':26,  'u':15, 'h':16, 'b':17,
-   '7':29,  'y':18, 'g':19, 'v':20,
-   '6':32,  't':21, 'f':22, 'c':23,
-   '5':35,  'r':24, 'd':25, 'x':26,
-   '4':38,  'e':27, 's':28, 'z':29,
-   '3':41,  'w':30, 'a':31};
-
+  // mappings from qwerty key names ('q') to midi notes (0)
+  // Bayan, left to right
   var LAYOUT_BL =
   {'q':0,  'a':1,   'z':2,
    '2':14, 'w':3,   's':4,  'x':5,
@@ -29,14 +16,24 @@ function(teoria, sc, KeyboardJS, T, Synth) {
    '0':38, 'p':27,  ';':28, '/':29,
    '-':41, '[':30,  '\'':31};
 
+  var QWERTY =
+  [['2','3','4','5','6','7','8','9','0','-'],
+   ['q','w','e','r','t','y','u','i','o','p','['],
+   ['a','s','d','f','g','h','j','k','l',';','\''],
+   ['z','x','c','v','b','n','m',',','.','/']];
+
 
   function Bayan(canvas) {
-    self = this;
     this.keys = {};
     this.lastKeyUp = 'backspace';
     this.canvas = canvas;
     this.octave = 5;
     this.layout = LAYOUT_BL;
+    this.stage = new createjs.Stage(canvas);
+    this.keyboard = {};
+    this.createKeyboard();
+    this.synth = new Synth();
+    this.setupEventListeners();
   }
 
   // Class methods
@@ -46,18 +43,20 @@ function(teoria, sc, KeyboardJS, T, Synth) {
     return names[names.length - 1];
   }
 
-  Bayan.midiNumberForKey = function(k) {
-    var midiNumber = self.layout[k];
+
+  // Instance methods
+  Bayan.prototype.midiNumberForKey = function(k) {
+    var midiNumber = this.layout[k];
     if (midiNumber === undefined) {
       return -1;
     }
-    midiNumber = midiNumber + self.octave*12;
+    midiNumber = midiNumber + this.octave*12;
     return midiNumber;
   }
 
-  // Instance methods
-  Bayan.prototype.init = function() {
-    // 'this' refers to the element the event originates from.
+
+  Bayan.prototype.setupEventListeners = function() {
+    // in an event handler, 'this' refers to the element the event originates from.
     // http://jibbering.com/faq/notes/closures
     var self = this;
     // Key down handler
@@ -80,7 +79,7 @@ function(teoria, sc, KeyboardJS, T, Synth) {
       }
       self.keys[k] = true;
 
-      var midiNumber = Bayan.midiNumberForKey(k);
+      var midiNumber = self.midiNumberForKey(k);
       if (midiNumber < 0) {
         return;
       }
@@ -90,6 +89,8 @@ function(teoria, sc, KeyboardJS, T, Synth) {
       console.log(midiNumber + note.toString() + " " + freq);
 
       self.synth.noteOn(midiNumber);
+      self.keyboard[k].keyDown();
+      self.stage.update();
     }
 
     // Key up handler
@@ -103,15 +104,55 @@ function(teoria, sc, KeyboardJS, T, Synth) {
       delete self.keys[k];
       self.lastKeyUp = k;
 
-      var midiNumber = Bayan.midiNumberForKey(k);
+      var midiNumber = self.midiNumberForKey(k);
       if (midiNumber < 0) {
         return;
       }
       self.synth.noteOff(midiNumber);
+      self.keyboard[k].keyUp();
+      self.stage.update();
     }
 
-    this.synth = new Synth();
   }
+
+  Bayan.prototype.createKeyboard = function () {
+    var width = Key.width();
+    var padding = width*0.1;
+    for (var r = 0; r < QWERTY.length; r++) {
+      for (var c = 0; c < QWERTY[r].length; c++) {
+        key = QWERTY[r][c];
+        var xOffset = 0;
+        switch (r) {
+          case 0:
+          case 2:
+            xOffset = width*0.5;
+            break;
+          case 3:
+            xOffset = width;
+            break;
+          case 1:
+          default:
+            break;
+        }
+        this.keyboard[key] = new Key(c*(Key.width() + padding) + xOffset, r*(Key.width() + padding),
+                                     this.midiNumberForKey(key), key,
+                                     this.stage);
+      }
+    }
+  }
+
+
+  Bayan.prototype.resize = function (w, h) {
+    var ow = 900;
+    var oh = 300;
+    var scale = Math.min(w/ow, h/oh);
+    this.stage.scaleX = scale;
+    this.stage.scaleY = scale;
+    this.stage.canvas.width = ow*scale;
+    this.stage.canvas.height = oh*scale;
+    this.stage.update();
+  }
+
 
   return Bayan;
 });
