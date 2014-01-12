@@ -31,6 +31,9 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     this.layout = LAYOUT_BL;
     this.stage = new createjs.Stage(canvas);
     this.keyboard = {};
+    this.createKeyboard();
+    this.synth = new Synth();
+    this.setupEventListeners();
   }
 
   // Class methods
@@ -52,7 +55,7 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
   }
 
 
-  Bayan.prototype.init = function() {
+  Bayan.prototype.setupEventListeners = function() {
     // in an event handler, 'this' refers to the element the event originates from.
     // http://jibbering.com/faq/notes/closures
     var self = this;
@@ -86,6 +89,8 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
       console.log(midiNumber + note.toString() + " " + freq);
 
       self.synth.noteOn(midiNumber);
+      self.keyboard[k].keyDown();
+      self.stage.update();
     }
 
     // Key up handler
@@ -104,10 +109,10 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
         return;
       }
       self.synth.noteOff(midiNumber);
+      self.keyboard[k].keyUp();
+      self.stage.update();
     }
 
-    this.synth = new Synth();
-    this.createKeyboard();
   }
 
   Bayan.prototype.createKeyboard = function () {
@@ -129,17 +134,25 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
           default:
             break;
         }
-        console.log(key);
-        this.keyboard[key] = Key(c*(Key.width() + padding) + xOffset, r*(Key.width() + padding),
-                                    this.midiNumberForKey(key), key,
-                                    this.stage);
+        this.keyboard[key] = new Key(c*(Key.width() + padding) + xOffset, r*(Key.width() + padding),
+                                     this.midiNumberForKey(key), key,
+                                     this.stage);
       }
     }
   }
 
-  Bayan.prototype.redraw = function () {
+
+  Bayan.prototype.resize = function (w, h) {
+    var ow = 900;
+    var oh = 300;
+    var scale = Math.min(w/ow, h/oh);
+    this.stage.scaleX = scale;
+    this.stage.scaleY = scale;
+    this.stage.canvas.width = ow*scale;
+    this.stage.canvas.height = oh*scale;
     this.stage.update();
   }
+
 
   return Bayan;
 });

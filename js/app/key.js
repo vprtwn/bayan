@@ -1,8 +1,8 @@
 define(['lib/easeljs', 'lib/teoria'],
 function(createjs) {
-  var W = 30;
+  var W = 50;
   var H = W;
-  var RADIUS = 5;
+  var RADIUS = 10;
   var UP_COLOR = "#000000";
   var DOWN_COLOR = "#FF0000";
 
@@ -25,11 +25,11 @@ function(createjs) {
 
   // Instance methods
   Key.prototype.keyDown = function() {
-    // this.shape.graphics.clear().beginFill(DOWN_COLOR).drawRoundRect(this.x, this.y, Key.width(), Key.width(), RADIUS);
+    this.shape.graphics.clear().beginFill(DOWN_COLOR).drawRoundRect(this.x, this.y, Key.width(), Key.width(), RADIUS);
   }
 
   Key.prototype.keyUp = function() {
-    // this.shape.graphics.clear().beginFill(UP_COLOR).drawRoundRect(this.x, this.y, Key.width(), Key.width(), RADIUS);
+    this.shape.graphics.clear().beginFill(UP_COLOR).drawRoundRect(this.x, this.y, Key.width(), Key.width(), RADIUS);
   }
 
   return Key;
