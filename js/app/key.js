@@ -1,7 +1,8 @@
 define(['lib/easeljs', 'lib/teoria'],
 function(createjs, teoria) {
-  var W = window.innerWidth/13;
+  var W = window.innerWidth/16;
   var H = W;
+  var TEXT_PADDING = W*0.1;
   var RADIUS = 10;
   var FONT = W*0.3 + "px Helvetica";
   var TEXT_COLOR = "#FFFFFF";
@@ -30,8 +31,8 @@ function(createjs, teoria) {
     this.stage.addChild(this.shape);
 
     this.text = new createjs.Text(keyName.toUpperCase(), FONT, TEXT_COLOR);
-    this.text.x = x + W*0.1;
-    this.text.y = y + W*0.1;
+    this.text.x = x + TEXT_PADDING;
+    this.text.y = y + TEXT_PADDING;
     this.text.baseline = "top";
     this.stage.addChild(this.text);
 

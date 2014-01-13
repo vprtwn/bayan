@@ -22,18 +22,20 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
    ['a','s','d','f','g','h','j','k','l',';','\''],
    ['z','x','c','v','b','n','m',',','.','/']];
 
-  function Bayan(canvas) {
+
+
+  function Bayan(canvas, textArea) {
     this.keys = {};
     this.lastKeyUp = 'backspace';
     this.canvas = canvas;
+    this.textArea = textArea;
     this.octave = 5;
     this.layout = LAYOUT_BL;
     this.stage = new createjs.Stage(canvas);
-    this.stage.enableMouseOver();
     this.keyboard = {};
     this.synth = new Synth();
     this.origWidth = window.innerWidth;
-    this.origHeight = window.innerHeight;
+    this.origHeight = window.innerHeight * 0.6;
     this.createKeyboard();
     this.setupEventListeners();
   }
@@ -64,6 +66,8 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     // Key down handler
     document.onkeydown = function(e) {
       e.preventDefault();
+      self.textArea.value = self.textArea.value + e;
+
       var k = Bayan.keyForEvent(e);
       // Prevent key repeat
       if (self.keys[k]) {
@@ -115,6 +119,7 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
   Bayan.prototype.createKeyboard = function () {
     var width = Key.width();
     var padding = width*0.1;
+    var leftMargin  = (window.innerWidth - 12.5*width)/2
     for (var r = 0; r < QWERTY.length; r++) {
       for (var c = 0; c < QWERTY[r].length; c++) {
         keyName = QWERTY[r][c];
@@ -131,7 +136,7 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
           default:
             break;
         }
-        var key = new Key(c*(Key.width() + padding) + xOffset,
+        var key = new Key(c*(Key.width() + padding) + leftMargin + xOffset,
                           r*(Key.width() + padding),
                           this.midiNumberForKey(keyName),
                           keyName,
@@ -179,6 +184,8 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     this.stage.scaleY = scale;
     this.stage.canvas.width = ow*scale;
     this.stage.canvas.height = oh*scale;
+    this.canvas.width = ow*scale;
+    this.canvas.height = oh*scale;
     this.stage.update();
   }
 
