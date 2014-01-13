@@ -17,6 +17,11 @@ function(createjs, teoria) {
     this.keyName = keyName;
     this.stage = stage;
     this.shape = new createjs.Shape();
+
+    // Using name and cursor to pass state in event callbacks.
+    this.shape.name = keyName;
+    this.shape.cursor = "up";
+
     var keyColor = WHITE_COLOR;
     if (this.isBlack() === true) {
       keyColor = BLACK_COLOR;
@@ -46,6 +51,7 @@ function(createjs, teoria) {
 
   Key.prototype.keyDown = function() {
     this.shape.graphics.clear().beginFill(BLUE_COLOR).drawRoundRect(this.x, this.y, Key.width(), Key.width(), RADIUS);
+    this.stage.update();
   }
 
   Key.prototype.keyUp = function() {
@@ -54,6 +60,7 @@ function(createjs, teoria) {
       keyColor = BLACK_COLOR;
     }
     this.shape.graphics.clear().beginFill(keyColor).drawRoundRect(this.x, this.y, Key.width(), Key.width(), RADIUS);
+    this.stage.update();
   }
 
   return Key;

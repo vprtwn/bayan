@@ -29,11 +29,12 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     this.octave = 5;
     this.layout = LAYOUT_BL;
     this.stage = new createjs.Stage(canvas);
+    this.stage.enableMouseOver();
     this.keyboard = {};
-    this.createKeyboard();
     this.synth = new Synth();
     this.origWidth = window.innerWidth;
     this.origHeight = window.innerHeight;
+    this.createKeyboard();
     this.setupEventListeners();
   }
 
@@ -81,9 +82,7 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
       self.keys[k] = true;
 
       var midiNumber = self.midiNumberForKey(k);
-      if (midiNumber < 0) {
-        return;
-      }
+      if (midiNumber < 0) return;
 
       var note = teoria.note.fromMIDI(midiNumber);
       var freq = sc.Scale.chromatic("equal").degreeToFreq(midiNumber, (0).midicps(), self.octave);
@@ -91,7 +90,6 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
 
       self.synth.noteOn(midiNumber);
       self.keyboard[k].keyDown();
-      self.stage.update();
     }
 
     // Key up handler
@@ -106,12 +104,10 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
       self.lastKeyUp = k;
 
       var midiNumber = self.midiNumberForKey(k);
-      if (midiNumber < 0) {
-        return;
-      }
+      if (midiNumber < 0) return;
+
       self.synth.noteOff(midiNumber);
       self.keyboard[k].keyUp();
-      self.stage.update();
     }
 
   }
@@ -121,7 +117,7 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     var padding = width*0.1;
     for (var r = 0; r < QWERTY.length; r++) {
       for (var c = 0; c < QWERTY[r].length; c++) {
-        key = QWERTY[r][c];
+        keyName = QWERTY[r][c];
         var xOffset = 0;
         switch (r) {
           case 0:
@@ -135,9 +131,53 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
           default:
             break;
         }
-        this.keyboard[key] = new Key(c*(Key.width() + padding) + xOffset, r*(Key.width() + padding),
-                                     this.midiNumberForKey(key), key,
-                                     this.stage);
+        var key = new Key(c*(Key.width() + padding) + xOffset,
+                          r*(Key.width() + padding),
+                          this.midiNumberForKey(keyName),
+                          keyName,
+                          this.stage,
+                          this.synth);
+        this.keyboard[keyName] = key;
+
+        // Setup event listeners
+        var self = this;
+        key.shape.on("mousedown", function(e) {
+          var keyName = e.target.name;
+          var midiNumber = self.midiNumberForKey(keyName);
+          if (midiNumber < 0) return;
+
+          console.log(e.target.cursor);
+          if (e.target.cursor === "up") {
+            self.synth.noteOn(midiNumber);
+            self.keyboard[keyName].keyDown();
+            e.target.cursor = "down";
+          }
+        });
+
+        key.shape.on("pressup", function(e) {
+          var keyName = e.target.name;
+          var midiNumber = self.midiNumberForKey(keyName);
+          if (midiNumber < 0) return;
+
+          if (e.target.cursor === "down") {
+            self.synth.noteOff(midiNumber);
+            self.keyboard[keyName].keyUp();
+            e.target.cursor = "up";
+          }
+        });
+
+        key.shape.on("rollover", function(e) {
+          var keyName = e.target.name;
+          var midiNumber = self.midiNumberForKey(keyName);
+          if (midiNumber < 0) return;
+
+          if (e.target.cursor === "up") {
+            self.synth.noteOn(midiNumber);
+            self.keyboard[keyName].keyDown();
+            e.target.cursor = "down";
+          }
+        });
+
       }
     }
   }
