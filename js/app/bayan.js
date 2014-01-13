@@ -22,7 +22,6 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
    ['a','s','d','f','g','h','j','k','l',';','\''],
    ['z','x','c','v','b','n','m',',','.','/']];
 
-
   function Bayan(canvas) {
     this.keys = {};
     this.lastKeyUp = 'backspace';
@@ -33,6 +32,8 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     this.keyboard = {};
     this.createKeyboard();
     this.synth = new Synth();
+    this.origWidth = window.innerWidth;
+    this.origHeight = window.innerHeight;
     this.setupEventListeners();
   }
 
@@ -143,8 +144,8 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
 
 
   Bayan.prototype.resize = function (w, h) {
-    var ow = 900;
-    var oh = 300;
+    var ow = this.origWidth ;
+    var oh = this.origHeight;
     var scale = Math.min(w/ow, h/oh);
     this.stage.scaleX = scale;
     this.stage.scaleY = scale;
