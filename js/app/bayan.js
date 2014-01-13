@@ -166,18 +166,6 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
           }
         });
 
-        key.shape.on("rollover", function(e) {
-          var keyName = e.target.name;
-          var midiNumber = self.midiNumberForKey(keyName);
-          if (midiNumber < 0) return;
-
-          if (e.target.cursor === "up") {
-            self.synth.noteOn(midiNumber);
-            self.keyboard[keyName].keyDown();
-            e.target.cursor = "down";
-          }
-        });
-
       }
     }
   }
