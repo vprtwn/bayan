@@ -1,6 +1,6 @@
 define(['lib/easeljs', 'lib/teoria'],
 function(createjs, teoria) {
-  var W = window.innerWidth/16;
+  var W = window.innerWidth/18;
   var H = W;
   var TEXT_PADDING = W*0.1;
   var RADIUS = 10;
@@ -10,6 +10,18 @@ function(createjs, teoria) {
   var WHITE_COLOR = "#bdc3c7";
   var BLUE_COLOR = "#01BEFF";
   var YELLOW_COLOR = "#f1c40f";
+  var COLORS = ["#56D3EA",
+                "#00E093",
+                "#72EA4B",
+                "#006924",
+                "#0208B2",
+                "#645CEC",
+                "#9D41EB",
+                "#EB0075",
+                "#EB1800",
+                "#FF7300",
+                "#FFA500",
+                "#FFEB00"]
 
   function Key(x, y, midiNumber, keyName, stage) {
     this.x = x;
@@ -50,8 +62,14 @@ function(createjs, teoria) {
     return m === 1 || m === 3 || m === 6 || m === 8 || m === 10;
   }
 
+  Key.prototype.downColor = function() {
+    var m = this.midiNumber % 12;
+    return COLORS[m];
+  }
+
   Key.prototype.keyDown = function() {
-    this.shape.graphics.clear().beginFill(BLUE_COLOR).drawRoundRect(this.x, this.y, Key.width(), Key.width(), RADIUS);
+    var color = this.downColor();
+    this.shape.graphics.clear().beginFill(color).drawRoundRect(this.x, this.y, Key.width(), Key.width(), RADIUS);
     this.stage.update();
   }
 

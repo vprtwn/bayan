@@ -3,14 +3,19 @@
   margin-right: auto;
   display: block;
   width: 100%;
-  height: 60%;
+  height: 50%;
 }
 
-#bayan-text {
+#bayan-textarea {
   display: block;
   margin-left: auto;
   margin-right: auto;
-  top:60%;
+  overflow:hidden;
+  font: 80px Helvetica, sans-serif;
+  /* vertical-align:top; */
+  top:70%;
+  border:none;
+  resize:none;
   width: 90%;
-  height: 35%;
+  height: 50%;
 }

@@ -23,7 +23,6 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
    ['z','x','c','v','b','n','m',',','.','/']];
 
 
-
   function Bayan(canvas, textArea) {
     this.keys = {};
     this.lastKeyUp = 'backspace';
@@ -35,7 +34,7 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     this.keyboard = {};
     this.synth = new Synth();
     this.origWidth = window.innerWidth;
-    this.origHeight = window.innerHeight * 0.6;
+    this.origHeight = window.innerHeight * 0.5;
     this.createKeyboard();
     this.setupEventListeners();
   }
@@ -66,13 +65,26 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     // Key down handler
     document.onkeydown = function(e) {
       e.preventDefault();
-      self.textArea.value = self.textArea.value + e;
 
       var k = Bayan.keyForEvent(e);
-      // Prevent key repeat
-      if (self.keys[k]) {
-        return;
+      if (self.keys[k]) return; // Prevent key repeat
+
+      var c = k;
+      var currentText = self.textArea.value;
+      if (c === 'backspace') {
+        self.textArea.value = currentText.substr(0, currentText.length - 1);
+      } else {
+        if (c === 'spacebar') {
+          c = ' ';
+        } else if (c === 'enter') {
+          c = '\r'
+        } else if (c.length > 1) {
+          c = '';
+        }
+        self.textArea.value = currentText + c;
       }
+      self.textArea.scrollTop = self.textArea.scrollHeight;
+
       // Prevent '-' and '=' keys from triggering 'backspace' and 'v'
       // Tested in Chrome, not sure about other browsers
       if (k === 'backspace'
