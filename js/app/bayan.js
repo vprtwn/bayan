@@ -23,7 +23,7 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
    ['z','x','c','v','b','n','m',',','.','/']];
 
 
-  function Bayan(canvas, textArea) {
+  function Bayan(canvas, textArea, sheetMusicString) {
     this.keys = {};
     this.lastKeyUp = 'backspace';
     this.canvas = canvas;
@@ -37,6 +37,13 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
     this.origHeight = window.innerHeight * 0.5;
     this.createKeyboard();
     this.setupEventListeners();
+    this.sheetIndex = 0;
+    this.sheetMusicString = sheetMusicString;
+
+    for(var i = 0; i < sheetMusicString.length; i++) {
+      $('#sheet').append('<span>' + sheetMusicString[i] + '</span>')
+    }
+    $('#sheet span:nth-child(' + (this.sheetIndex + 1) + ')').addClass('highlighted');
   }
 
   // Class methods
@@ -84,6 +91,18 @@ function (teoria, sc, KeyboardJS, T, createjs, Synth, Key) {
         self.textArea.value = currentText + c;
       }
       self.textArea.scrollTop = self.textArea.scrollHeight;
+
+      if( c === self.sheetMusicString[ self.sheetIndex ]) {
+        $('#sheet span').removeClass('highlighted');
+
+        self.sheetIndex += 1;
+        // skip spaces
+        if( self.sheetMusicString[ self.sheetIndex ] === ' ') {
+          self.sheetIndex += 1;
+        }
+
+        $('#sheet span:nth-child(' + (self.sheetIndex + 1) + ')').addClass('highlighted');
+      }
 
       // Prevent '-' and '=' keys from triggering 'backspace' and 'v'
       // Tested in Chrome, not sure about other browsers
